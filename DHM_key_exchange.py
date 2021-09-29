@@ -37,7 +37,12 @@ if ALICE:
 	tcp_socket_send = socket(AF_INET, SOCK_STREAM)
 	tcp_socket_recv = socket(AF_INET, SOCK_STREAM)
 	tcp_socket_send.bind((IP, 53069))
-	tcp_socket_recv.connect((IP, 53070))
+	while True:
+		try:
+			tcp_socket_recv.connect((IP, 53070))
+			break
+		except ConnectionRefusedError:
+			pass
 	tcp_send = StreamSocket(tcp_socket_send, Raw)
 	tcp_recv = StreamSocket(tcp_recv_send, Raw)
 	
@@ -55,7 +60,12 @@ if BOB:
 	tcp_socket_send = socket(AF_INET, SOCK_STREAM)
 	tcp_socket_recv = socket(AF_INET, SOCK_STREAM)
 	tcp_socket_send.bind((IP, 53070))
-	tcp_socket_recv.connect((IP, 53069))
+	while True:
+		try:
+			tcp_socket_recv.connect((IP, 53069))
+			break
+		except ConnectionRefusedError:
+			pass
 	tcp_send = StreamSocket(tcp_socket_send, Raw)
 	tcp_recv = StreamSocket(tcp_recv_send, Raw)
 	
