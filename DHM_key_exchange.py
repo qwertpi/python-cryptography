@@ -22,13 +22,8 @@ def generate_personal_secret(p):
 	return randbelow(q)
 	...
 def modular_exponenate(value, power, modulus):
-	def __calc(n):
-		if n == 0:
-			return 1
-		else:
-			return (value * __calc(n - 1)) % modulus
-
-	return __calc(power)
+	#use built in pow for efficiency
+	return pow(value, power, modulus)
 
 ALICE = "y" == input("Are you Alice? y/n  ")[0].lower()
 BOB = not ALICE
@@ -46,16 +41,16 @@ if ALICE:
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	bobs_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0"))
+	bobs_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0"))
 	shared_secret = modular_exponenate(bobs_public_value, personal_secret, p)
 	print(shared_secret)
 
 if BOB:
-	p, g = map(int, sniff(filter="udp dst port 53069", count=1, iface="wlan0").split(";"))
+	p, g = map(int, sniff(filter="udp dst port 53070", count=1, iface="wlan0").split(";"))
 
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	alices_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0"))
+	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0"))
 	shared_secret = modular_exponenate(alices_public_value, personal_secret, p)
 	print(shared_secret)
