@@ -1,11 +1,8 @@
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 from secrets import randbelow
 
 from scapy.layers.inet import UDP, IP
 from scapy.packet import Raw
 from scapy.sendrecv import send, sniff
-from socket import socket, AF_INET, SOCK_STREAM
 
 #this is difie-hellman group 16 https://tools.ietf.org/id/draft-ietf-curdle-ssh-kex-sha2-09.html#rfc.section.3.9
 def generate_p():
@@ -21,20 +18,18 @@ def generate_personal_secret(p):
 	#int division as we want an int anyway and a float would overflow
 	q = (p - 1)//2
 	return randbelow(q)
-	...
+	
 def modular_exponenate(value, power, modulus):
 	#use built in pow for efficiency
 	return pow(value, power, modulus)
 
-ALICE = "y" == input("Are you Alice? y/n  ")[0].lower()
+
+ALICE = input("Are you Alice? y/n  ")[0].lower() == "y"
 BOB = not ALICE
 CLIENT_IP = input("Enter the IP of the other party  ")
 
-from netifaces import ifaddresses, AF_INET
-OUR_IP = ifaddresses("wlan0")[AF_INET][0]["addr"]
-
-
 if ALICE:
+	input("Press enter once you have started Bob  ")
 	p = generate_p()
 	g = generate_g()
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{p};{g}", iface="wlan0")
@@ -42,15 +37,15 @@ if ALICE:
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	bobs_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
+	bobs_public_value = int(sniff(filter=f"dst host {CLIENT_IP} udp dst port 53069", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
 	shared_secret = modular_exponenate(bobs_public_value, personal_secret, p)
 	print(shared_secret)
 
 if BOB:
-	p, g = map(int, sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii").split(";"))
+	p, g = map(int, sniff(filter=f"dst host {CLIENT_IP} udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii").split(";"))
 
-	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
-	
+	alices_public_value = int(sniff(filter=f"dst host {CLIENT_IP} udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
+
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
