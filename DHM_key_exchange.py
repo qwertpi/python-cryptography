@@ -2,8 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from secrets import randbelow
 
-from scapy.layers.inet import UDP
-from scapy.packet import Raw
+from scapy.layers.inet import UDP, IP
 from scapy.sendrecv import send, sniff
 from socket import socket, AF_INET, SOCK_STREAM
 
@@ -35,16 +34,16 @@ BOB = not ALICE
 CLIENT_IP = input("Enter the IP of the other party  ")
 
 from netifaces import ifaddresses, AF_INET
-IP = ifaddresses("wlan0")[AF_INET][0]["addr"]
+OUR_IP = ifaddresses("wlan0")[AF_INET][0]["addr"]
 
 
 if ALICE:
 	p = generate_p()
 	g = generate_g()
-	send(Raw(f"{p};{g}")/IP(dst=CLIENT_IP)/UDP(dport=53069), iface="wlan0")
+	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{p};{g}", iface="wlan0")
 
-	personal_secret = generate_personal_secret()
-	send(Raw(f"{modular_exponenate(g, personal_secret, p)}")/IP(dst=CLIENT_IP)/UDP(dport=53069), iface="wlan0")
+	personal_secret = generate_personal_secret(p)
+	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
 	bobs_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0"))
 	shared_secret = modular_exponenate(bobs_public_value, personal_secret, p)
@@ -53,8 +52,8 @@ if ALICE:
 if BOB:
 	p, g = map(int, sniff(filter="udp dst port 53069", count=1, iface="wlan0").split(";"))
 
-	personal_secret = generate_personal_secret()
-	send(Raw(f"{modular_exponenate(g, personal_secret, p)}")/IP(dst=CLIENT_IP)/UDP(dport=53070), iface="wlan0")
+	personal_secret = generate_personal_secret(p)
+	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
 	alices_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0"))
 	shared_secret = modular_exponenate(alices_public_value, personal_secret, p)
