@@ -32,22 +32,28 @@ if ALICE:
 	input("Press enter once you have started Bob  ")
 	p = generate_p()
 	g = generate_g()
+	print("Sharing p and g")
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{p};{g}", iface="wlan0")
 
 	personal_secret = generate_personal_secret(p)
+	print("Sharing public value")
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
 	bobs_public_value = int(sniff(filter=f"src host {CLIENT_IP} and udp dst port 53069", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
+	print("Calculating shared secret")
 	shared_secret = modular_exponenate(bobs_public_value, personal_secret, p)
 	print(shared_secret)
 
 if BOB:
 	p, g = map(int, sniff(filter=f"src host {CLIENT_IP} and udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii").split(";"))
-
+	print("Received p and g")
+	
 	alices_public_value = int(sniff(filter=f"src host {CLIENT_IP} and udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
 
 	personal_secret = generate_personal_secret(p)
+	print("Sharing public value")
 	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
+	print("Calculating shared secret")
 	shared_secret = modular_exponenate(alices_public_value, personal_secret, p)
 	print(shared_secret)
