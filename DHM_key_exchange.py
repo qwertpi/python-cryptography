@@ -3,6 +3,7 @@ from functools import partial
 from secrets import randbelow
 
 from scapy.layers.inet import UDP, IP
+from scapy.packet import Raw
 from scapy.sendrecv import send, sniff
 from socket import socket, AF_INET, SOCK_STREAM
 
@@ -41,16 +42,16 @@ if ALICE:
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53070)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	bobs_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0"))
+	bobs_public_value = int(sniff(filter="udp dst port 53069", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
 	shared_secret = modular_exponenate(bobs_public_value, personal_secret, p)
 	print(shared_secret)
 
 if BOB:
-	p, g = map(int, sniff(filter="udp dst port 53070", count=1, iface="wlan0").split(";"))
+	p, g = map(int, sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii").split(";"))
 
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0"))
+	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
 	shared_secret = modular_exponenate(alices_public_value, personal_secret, p)
 	print(shared_secret)
