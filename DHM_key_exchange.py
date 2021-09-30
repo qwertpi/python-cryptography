@@ -49,9 +49,10 @@ if ALICE:
 if BOB:
 	p, g = map(int, sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii").split(";"))
 
+	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
+	
 	personal_secret = generate_personal_secret(p)
 	send(IP(dst=CLIENT_IP)/UDP(dport=53069)/f"{modular_exponenate(g, personal_secret, p)}", iface="wlan0")
 	
-	alices_public_value = int(sniff(filter="udp dst port 53070", count=1, iface="wlan0")[0][Raw].load.decode("ascii"))
 	shared_secret = modular_exponenate(alices_public_value, personal_secret, p)
 	print(shared_secret)
