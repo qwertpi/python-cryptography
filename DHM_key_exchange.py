@@ -17,7 +17,8 @@ def generate_g():
 
 def generate_personal_secret(p):
 	#as per 5.6.1.1.1 of NIST SP 800-56A Rev. 3
-	q = (p - 1)/2
+	#int division as we want an int anyway and a float would overflow
+	q = (p - 1)//2
 	return randbelow(q)
 	...
 def modular_exponenate(value, power, modulus):
