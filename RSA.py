@@ -123,7 +123,7 @@ elif mode == 3:
 	except ValueError:
 		pass
 
-	plaintext_as_ints = map(partial(pow(exponent=d, modulus=n)), blocks_of_ciphertext)
+	plaintext_as_ints = map(partial(kw_pow, exponent=d, modulus=n), blocks_of_ciphertext)
 	#log256(x) is the same as log2(x)/8 which is the minimum number of bytes needed to represent x
 	plaintext = [x.to_bytes(ceil(log(x, base=256)).decode("utf-8"), "little") for x in plaintext_as_ints]
 	print("".join(plaintext))
