@@ -91,7 +91,7 @@ if mode == 1:
 	print("Cleaning up")
 	del p, q, totient
 
-	public_key = (n, e)
+	public_key = (e, n)
 	private_key = (d, n)
 	save_to_key_file(pub_file, public_key)
 	print("Saved public key to " + pub_file)
@@ -102,12 +102,12 @@ elif mode == 2:
 	plaintext = input("Enter the message that you would like to encrypt  ")
 	#splits text up into 100 byte blocks
 	blocks_of_plaintext = []
-	n = 100
-	while n <= len(plaintext):
-		blocks_of_plaintext.append(plaintext[(n-100):n])
-		n += 100
+	i = 100
+	while i <= len(plaintext):
+		blocks_of_plaintext.append(plaintext[(i-100):i])
+		i += 100
 	if len(plaintext) % 100 != 0:
-		blocks_of_plaintext.append(plaintext[(n-100):-1])
+		blocks_of_plaintext.append(plaintext[(i-100):-1])
 
 	blocks_of_plaintext_as_ints = map(lambda x: int.from_bytes(bytes(x, "utf-8"), byteorder="little"), blocks_of_plaintext)
 	ciphertext = map(partial(kw_pow, exponent=e, modulus=n), blocks_of_plaintext_as_ints)
