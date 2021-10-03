@@ -9,6 +9,8 @@ except ImportError:
 		from stackoverflow.com/a/51716959
 		'''
 		return (a * b) // gcd(a, b)
+from sys import setrecursionlimit
+setrecursionlimit(2000)
 from secrets import randbits, randbelow
 
 from gmpy2 import is_prime
