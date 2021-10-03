@@ -107,8 +107,8 @@ elif mode == 2:
 		blocks_of_plaintext.append(plaintext[(i-100):i])
 		i += 100
 	if len(plaintext) % 100 != 0:
-		blocks_of_plaintext.append(plaintext[(i-100):-1])
-
+		blocks_of_plaintext.append(plaintext[(i-100):-1] + plaintext[-1])
+	
 	blocks_of_plaintext_as_ints = map(lambda x: int.from_bytes(bytes(x, "utf-8"), byteorder="little"), blocks_of_plaintext)
 	ciphertext = map(partial(kw_pow, exponent=e, modulus=n), blocks_of_plaintext_as_ints)
 	for block in ciphertext:
