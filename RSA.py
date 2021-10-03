@@ -1,4 +1,5 @@
 from base64 import b64encode, b64decode
+from functools import partial
 try:
 	from math import ceil, gcd, lcm, log
 #handles Python versions earlier than 3.9
