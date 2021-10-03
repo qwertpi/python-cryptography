@@ -1,4 +1,4 @@
-from base64 import b64encode, b64decode
+from base64 import  b64decode, b64encode
 from functools import partial
 try:
 	from math import ceil, gcd, lcm, log
@@ -12,17 +12,22 @@ except ImportError:
 		return (a * b) // gcd(a, b)
 #need keyword arguments for partial
 def kw_pow(base=None, exponent=None, modulus=None):
+	'''
+	A very thin wrapper for Python's built in pow
+	Does (base ** exponent) mod modulus
+	'''
 	if base is None or exponent is None:
 		raise AssertionError
 	if modulus is None:
 		return pow(base, exponent)
 	return pow(base, exponent, modulus)
 
+from secrets import randbelow, randbits
 from sys import setrecursionlimit
 setrecursionlimit(2000)
-from secrets import randbits, randbelow
 
 from gmpy2 import is_prime
+
 
 def load_key_file(filename):
 	with open(filename, "r") as f:
@@ -32,13 +37,16 @@ def save_to_key_file(filename, key):
 	with open(filename, "w") as f:
 		def to_bytes(x):
 			return bytes(str(x), "ascii")
+		def to_base_64(x):
+			return b64encode(to_bytes(x)).decode("ascii")
 
-		f.write(b64encode(to_bytes(key[0])).decode("ascii") + ";" + b64encode(to_bytes(key[1])).decode("ascii"))
+		f.write(to_base_64(key[0]) + ";" + to_base_64(key[1]))
 
 
 mode = 0
-while not (1 <= mode <= 3):
+while not 1 <= mode <= 3:
 	mode = int(input("Would you like to 1. Generate a new key pair 2. Encrypt a message 3. Decrypt a message  ")[0])
+
 if mode == 1:
 	def modular_multiplicative_inverse(multiplier, modulus):
 		'''
@@ -93,6 +101,8 @@ if mode == 1:
 
 	public_key = (e, n)
 	private_key = (d, n)
+	print(f"Public key is: {public_key}")
+	print(f"Private key is: {private_key}")
 	save_to_key_file(pub_file, public_key)
 	print("Saved public key to " + pub_file)
 	save_to_key_file(priv_file, private_key)
@@ -109,8 +119,16 @@ elif mode == 2:
 	if len(plaintext) % 100 != 0:
 		blocks_of_plaintext.append(plaintext[(i-100):-1] + plaintext[-1])
 	
-	blocks_of_plaintext_as_ints = map(lambda x: int.from_bytes(bytes(x, "utf-8"), byteorder="little"), blocks_of_plaintext)
+	def text_to_int(x):
+		"""
+		Converts a string text into bytes then interprets all those bytes as a single int
+		"""
+		text_as_bytes = bytes(x, "utf-8")
+		return int.from_bytes(text_as_bytes, byteorder="little")
+
+	blocks_of_plaintext_as_ints = map(text_to_int, blocks_of_plaintext)
 	ciphertext = map(partial(kw_pow, exponent=e, modulus=n), blocks_of_plaintext_as_ints)
+	print("Cipher text is:")
 	for block in ciphertext:
 		print(block)
 elif mode == 3:
