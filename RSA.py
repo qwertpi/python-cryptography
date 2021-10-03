@@ -11,7 +11,7 @@ except ImportError:
 		'''
 		return (a * b) // gcd(a, b)
 #need keyword arguments for partial
-def pow(base=None, exponent=None, modulus=None):
+def kw_pow(base=None, exponent=None, modulus=None):
 	if base is None or exponent is None:
 		raise AssertionError
 	if modulus is None:
@@ -26,7 +26,7 @@ from gmpy2 import is_prime
 
 def load_key_file(filename):
 	with open(filename, "r") as f:
-		return map(lambda x: int(b64decode(x)), f.read().splitlines()[0].split(";"))
+		return [int(b64decode(x)) for x in f.read().splitlines()[0].split(";")]
 
 def save_to_key_file(filename, key):
 	with open(filename, "w") as f:
@@ -110,7 +110,7 @@ elif mode == 2:
 		blocks_of_plaintext.append(plaintext[(n-100):-1])
 
 	blocks_of_plaintext_as_ints = map(lambda x: int.from_bytes(bytes(x, "utf-8"), byteorder="little"), blocks_of_plaintext)
-	ciphertext = map(partial(pow(exponent=e, modulus=n)), blocks_of_plaintext_as_ints)
+	ciphertext = map(partial(kw_pow, exponent=e, modulus=n), blocks_of_plaintext_as_ints)
 	for block in ciphertext:
 		print(block)
 elif mode == 3:
@@ -123,7 +123,7 @@ elif mode == 3:
 
 	plaintext_as_ints = map(partial(pow(exponent=d, modulus=n)), blocks_of_ciphertext)
 	#log256(x) is the same as log2(x)/8 which is the minimum number of bytes needed to represent x
-	plaintext = map(lambda x: x.to_bytes(ceil(log(x, base=256)).decode("utf-8"), "little"), plaintext_as_ints)
+	plaintext = [x.to_bytes(ceil(log(x, base=256)).decode("utf-8"), "little") for x in plaintext_as_ints]
 	print("".join(plaintext))
 else:
 	raise AssertionError
