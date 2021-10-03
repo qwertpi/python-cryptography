@@ -10,6 +10,14 @@ except ImportError:
 		from stackoverflow.com/a/51716959
 		'''
 		return (a * b) // gcd(a, b)
+#need keyword arguments for partial
+def pow(base=None, exponent=None, modulus=None):
+	if base is None or exponent is None:
+		raise AssertionError
+	if modulus is None:
+		return pow(base, exponent)
+	return pow(base, exponent, modulus)
+
 from sys import setrecursionlimit
 setrecursionlimit(2000)
 from secrets import randbits, randbelow
@@ -102,7 +110,7 @@ elif mode == 2:
 		blocks_of_plaintext.append(plaintext[(n-100):-1])
 
 	blocks_of_plaintext_as_ints = map(lambda x: int.from_bytes(bytes(x, "utf-8"), byteorder="little"), blocks_of_plaintext)
-	ciphertext = map(partial(pow(exp=e, mod=n)), blocks_of_plaintext_as_ints)
+	ciphertext = map(partial(pow(exponent=e, modulus=n)), blocks_of_plaintext_as_ints)
 	for block in ciphertext:
 		print(block)
 elif mode == 3:
@@ -113,7 +121,7 @@ elif mode == 3:
 	while blocks_of_ciphertext[-1] is not "":
 		blocks_of_ciphertext.append(int(input("Enter the next block of ciphertext  ")))
 
-	plaintext_as_ints = map(partial(pow(exp=d, mod=n)), blocks_of_ciphertext)
+	plaintext_as_ints = map(partial(pow(exponent=d, modulus=n)), blocks_of_ciphertext)
 	#log256(x) is the same as log2(x)/8 which is the minimum number of bytes needed to represent x
 	plaintext = map(lambda x: x.to_bytes(ceil(log(x, base=256)).decode("utf-8"), "little"), plaintext_as_ints)
 	print("".join(plaintext))
