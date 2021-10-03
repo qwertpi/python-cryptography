@@ -17,7 +17,7 @@ from gmpy2 import is_prime
 
 def load_key_file(filename):
 	with open(filename, "r") as f:
-		return map(lambda x: int(b64decode(x)), f.read.splitlines()[0].split(";"))
+		return map(lambda x: int(b64decode(x)), f.read().splitlines()[0].split(";"))
 
 def save_to_key_file(filename, key):
 	with open(filename, "w") as f:
