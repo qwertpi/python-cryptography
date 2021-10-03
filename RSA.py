@@ -115,11 +115,13 @@ elif mode == 2:
 		print(block)
 elif mode == 3:
 	d, n = load_key_file(input("Enter the filename (including extension) of the private key  "))
-	plaintext = input("Please enter the message that you would like to decrypt one block at a time, press return without entering anything once you run out of blocks ")
-	#splits text up into 100 byte blocks
-	blocks_of_ciphertext = []
-	while blocks_of_ciphertext[-1] is not "":
-		blocks_of_ciphertext.append(int(input("Enter the next block of ciphertext  ")))
+	
+	blocks_of_ciphertext = [int(input("Please enter the message that you would like to decrypt one block at a time, press return without entering anything once you run out of blocks "))]
+	try:
+		while True:
+			blocks_of_ciphertext.append(int(input("Enter the next block of ciphertext  ")))
+	except ValueError:
+		pass
 
 	plaintext_as_ints = map(partial(pow(exponent=d, modulus=n)), blocks_of_ciphertext)
 	#log256(x) is the same as log2(x)/8 which is the minimum number of bytes needed to represent x
