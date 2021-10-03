@@ -24,7 +24,7 @@ def save_to_key_file(filename, key):
 		def to_bytes(x):
 			return bytes(str(x), "ascii")
 
-		f.write(b64encode(to_bytes(key[0])) + ";" + b64encode(to_bytes(key[1])))
+		f.write(b64encode(to_bytes(key[0])).decode("ascii") + ";" + b64encode(to_bytes(key[1])).decode("ascii"))
 
 
 mode = 0
